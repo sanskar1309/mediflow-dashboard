@@ -1,5 +1,7 @@
 import {
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
   signInWithPopup,
   GoogleAuthProvider,
   signOut,
@@ -23,6 +25,16 @@ function mapFirebaseUser(fbUser: FirebaseUser): User {
 }
 
 export const authService = {
+  async signUpWithEmail(email: string, password: string, fullName: string): Promise<User> {
+    const result = await createUserWithEmailAndPassword(auth, email, password)
+    await updateProfile(result.user, { displayName: fullName })
+    const user = mapFirebaseUser({ ...result.user, displayName: fullName })
+    if (useSettingsStore.getState().notifyLogin) {
+      notificationService.showLoginNotification(fullName)
+    }
+    return user
+  },
+
   async loginWithEmail(email: string, password: string): Promise<User> {
     const result = await signInWithEmailAndPassword(auth, email, password)
     const user = mapFirebaseUser(result.user)
